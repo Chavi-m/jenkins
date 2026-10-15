@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent any
 
@@ -13,12 +14,6 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                bat 'docker build -t %DOCKER_IMAGE%:latest .'
-            }
-        }
-
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([string(
@@ -27,10 +22,16 @@ pipeline {
                 )]) {
                     bat '''
                     @echo off
-                    echo %DOCKER_PAT%|docker login -u akshatha29 --password-stdin
-                   if errorlevel 1 exit /b 1
+                    echo %DOCKER_PAT%|docker login -u chavi123 --password-stdin
+                    if errorlevel 1 exit /b 1
                     '''
                 }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat 'docker build -t %DOCKER_IMAGE%:latest .'
             }
         }
 
@@ -50,3 +51,4 @@ pipeline {
         }
     }
 }
+```
