@@ -6,29 +6,47 @@ pipeline {
     }
 
     stages {
-
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Chavi-m/jenkins.git'
+                git branch: 'main',
+                    url: 'https://github.com/Chavi-m/jenkins.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE}:latest")
+                bat 'docker build -t %DOCKER_IMAGE%:latest .'
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([string(
+                    credentialsId: 'docker-credential',
+                    variable: 'DOCKER_PAT'
+                )]) {
+                    bat '''
+                    @echo off
+                    echo %DOCKER_PAT%|docker login -u akshatha29 --password-stdin
+                   if errorlevel 1 exit /b 1
+                    '''
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('', 'dockerhub-creds') {
-                        docker.image("${DOCKER_IMAGE}:latest").push()
-                    }
-                }
+                bat 'docker push %DOCKER_IMAGE%:latest'
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Docker image built and pushed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
